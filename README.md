@@ -18,6 +18,6 @@ IDE utilizada: *Visual Studio Code.*
 
 Tecnologia de back-end: *Python* (usando a framework Flask)
 
-Tecnologia de front-end: *html/css*
+Tecnologia de front-end: *HTML e CSS*
 
 Banco da dados: *SQLite*
