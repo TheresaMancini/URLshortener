@@ -1,6 +1,5 @@
 import sqlite3
 from hashids import Hashids
-#from flask_login import login_user, login_required, current_user, LoginManager
 from flask_session import Session
 import validators
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -23,7 +22,6 @@ Session(app)  # pacote para lidar com sessão de usuário
 hashids = Hashids(min_length=6, salt=app.config['SECRET_KEY'])
 
 @app.route('/', methods=('GET', 'POST'))
-#@login_required
 def index():
     conn = get_db_connection()
     
@@ -44,7 +42,7 @@ def index():
         url_data = conn.execute('INSERT INTO urls (original_url, username, short_url) VALUES (?,?,?)'
                                                                 ,(url,session["name"],url))
         conn.commit()
-        # conn.close()
+
         url_id = url_data.lastrowid
         hashid = hashids.encode(url_id)
         short_url = request.host_url + hashid
@@ -65,31 +63,24 @@ def url_redirect(id):
     original_id = hashids.decode(id)
     if original_id:
         original_id = original_id[0]
-        # url_data = conn.execute('SELECT original_url, clicks FROM urls'
-        #                         ' WHERE id = (?)', (original_id,)
-        #                         ).fetchone()
+
         url_data = conn.execute('SELECT original_url FROM urls'
                                 ' WHERE id = (?)', (original_id,)
                                 ).fetchone()
         original_url = url_data['original_url']
-        # clicks = url_data['clicks']
 
-        # conn.execute('UPDATE urls SET clicks = ? WHERE id = ?',
-        #              (clicks+1, original_id))
-
-        # conn.commit()
         conn.close()
         return redirect(original_url)
     else:
         flash('Invalid URL')
         return redirect(url_for('index'))
 
-@app.route('/login', methods=['GET', 'POST']) # define login page path
-def login(): # define login page fucntion
-    if request.method=='GET': # if the request is a GET we return the login page
+@app.route('/login', methods=['GET', 'POST']) 
+def login(): 
+    if request.method=='GET': 
         return render_template('login.html')
-    else: # if the request is POST the we check if the user exist 
-          # and with te right password
+    else: # checar usuario e senha
+          
         email = request.form.get('email')
         password = request.form.get('password')
 
@@ -107,7 +98,7 @@ def login(): # define login page fucntion
             return redirect(url_for('login'))
         elif not check_password_hash(user['senha'], password):
             flash(f'Verifique suas informações de acesso.')
-            return redirect(url_for('login')) # if the user 
+            return redirect(url_for('login'))  
               
         session["name"] = user['username']
         return redirect(url_for('index'))
@@ -123,11 +114,7 @@ def stats():
     if not session.get("name"):
         return redirect("/login")
     conn = get_db_connection()
-    #db_urls = conn.execute('SELECT id, created, original_url, username FROM urls'
-    #                       ).fetchall()
-    # db_urls = conn.execute('SELECT id, created, original_url, username FROM urls'
-    #                        ' WHERE username = (?)', (session["name"],)
-    #                         ).fetchall()
+
     db_urls = conn.execute('SELECT id, datetime(created,"localtime") as created, original_url, username, short_url FROM urls'
                            ' WHERE username = (?)', (session["name"],)
                             ).fetchall()
