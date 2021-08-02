@@ -41,13 +41,18 @@ def index():
             return redirect(url_for('index'))
 
         username = session["name"]
-        url_data = conn.execute('INSERT INTO urls (original_url, username) VALUES (?,?)'
-                                                                ,(url,session["name"]))
+        url_data = conn.execute('INSERT INTO urls (original_url, username, short_url) VALUES (?,?,?)'
+                                                                ,(url,session["name"],url))
         conn.commit()
-        conn.close()
+        # conn.close()
         url_id = url_data.lastrowid
         hashid = hashids.encode(url_id)
         short_url = request.host_url + hashid
+
+        conn.execute('UPDATE urls SET short_url = ? WHERE id = ?',
+                                                  (short_url, url_id))
+        conn.commit()
+        conn.close()
 
         return render_template('index.html', short_url=short_url, username=username)
 
@@ -123,15 +128,11 @@ def stats():
     # db_urls = conn.execute('SELECT id, created, original_url, username FROM urls'
     #                        ' WHERE username = (?)', (session["name"],)
     #                         ).fetchall()
-    db_urls = conn.execute('SELECT id, datetime(created,"localtime") as created, original_url, username FROM urls'
+    db_urls = conn.execute('SELECT id, datetime(created,"localtime") as created, original_url, username, short_url FROM urls'
                            ' WHERE username = (?)', (session["name"],)
                             ).fetchall()
     conn.close()
 
-    urls = []
-    for url in db_urls:
-        url = dict(url)
-        url['short_url'] = request.host_url + hashids.encode(url['id'])
-        urls.append(url)
+    urls = db_urls
 
     return render_template('stats.html', urls=urls, username=session["name"])
