@@ -21,3 +21,5 @@ Tecnologia de back-end: *Python* (usando a framework Flask)
 Tecnologia de front-end: *HTML e CSS*
 
 Banco da dados: *SQLite*
+
+O script para a criação do banco de dados se encontra no arquivo schemas.sql
